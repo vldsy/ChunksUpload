@@ -6,9 +6,9 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-import DropZone from 'dropzone-vue';
+//import DropZone from 'dropzone-vue';
 
-import 'dropzone-vue/dist/dropzone-vue.common.css';
+//import 'dropzone-vue/dist/dropzone-vue.common.css';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -23,7 +23,7 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            .use(DropZone)
+            //.use(DropZone)
             .mount(el);
     },
     progress: {
