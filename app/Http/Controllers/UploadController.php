@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Post;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class UploadController extends Controller
@@ -11,10 +12,18 @@ class UploadController extends Controller
     public function upload(Request $request)
     {
         //dd($request);
+        //Log::info($request);
+        Log::info($request->all());
         $file = $request->file('file');
 
         $chunkIndex = $request->input('dzchunkindex');
+
+        //Log::info($chunkIndex);
+
         $totalChunks = $request->input('dztotalchunkcount');
+
+        //Log::info($totalChunks);
+
         $filename = $request->input('dzuuid') . '.' . $file->getClientOriginalExtension();
 
         $file->storeAs('chunks', $filename . '.' . $chunkIndex);
@@ -39,7 +48,7 @@ class UploadController extends Controller
             $chunk = fopen($path . $filename . '.' . $i, 'r');
             stream_copy_to_stream($chunk, $combinedFile);
             fclose($chunk);
-            Storage::delete('chunks/' . $filename . '.' . $i);
+            //Storage::delete('chunks/' . $filename . '.' . $i);
         }
 
         fclose($combinedFile);
