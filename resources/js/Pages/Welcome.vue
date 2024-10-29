@@ -47,7 +47,8 @@ function handleImageError() {
                                 :maxFiles="Number(10000000000)"
                                 url="http://localhost:8000/upload"
                                 :uploadOnDrop="true"
-                                :multipleUpload="true"
+                                :multipleUpload="false"
+                                
                                 :parallelUpload="3"/>
                         </div>
                     </div>
