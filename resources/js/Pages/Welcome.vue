@@ -67,6 +67,10 @@ onMounted(() => {
                                 :uploadOnDrop="true"
                                 :multipleUpload="false"
                                 :headers="headers"
+                                :chunking="true"
+                                :chunkSize="2000000"
+                                :retryChunks="true"
+                                :retryChunksLimit="3"
                                 :parallelUpload="3"/>
                         </div>
                     </div>
