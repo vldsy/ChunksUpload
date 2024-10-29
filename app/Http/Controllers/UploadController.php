@@ -8,6 +8,9 @@ class UploadController extends Controller
 {
     public function upload(Request $request)
     {
-        dd($request);
+        //dd($request);
+        $file = $request->file('file');
+
+        return response()->json(['success' => true]);
     }
 }

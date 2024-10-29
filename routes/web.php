@@ -5,6 +5,7 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Middleware\Cors;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -24,8 +25,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-Route::group(['middleware' => 'cors'], function () {
-    Route::post('/upload', [UploadController::class, 'upload'])->name('upload');
-});
+//Route::group(['middleware' => 'cors'], function () {
+Route::post('/upload', [UploadController::class, 'upload'])->name('upload')->middleware(Cors::class);
+;
+//});
+
+
 
 require __DIR__.'/auth.php';

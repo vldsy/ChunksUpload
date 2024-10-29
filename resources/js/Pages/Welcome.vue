@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 
 defineProps({
     canLogin: {
@@ -24,6 +25,23 @@ function handleImageError() {
     document.getElementById('docs-card-content')?.classList.add('!flex-row');
     document.getElementById('background')?.classList.add('!hidden');
 }
+
+
+const headers = ref({});
+
+onMounted(() => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (csrfToken) {
+      headers.value = {
+        'X-CSRF-TOKEN': csrfToken
+      };
+    } else {
+      console.error('CSRF token not found');
+    }
+  });
+});
+
 </script>
 
 <template>
@@ -48,7 +66,7 @@ function handleImageError() {
                                 url="http://localhost:8000/upload"
                                 :uploadOnDrop="true"
                                 :multipleUpload="false"
-                                
+                                :headers="headers"
                                 :parallelUpload="3"/>
                         </div>
                     </div>
