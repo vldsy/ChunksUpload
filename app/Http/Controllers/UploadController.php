@@ -10,8 +10,18 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions;
 use Spatie\MediaLibrary\Support\File;
 
+/**
+ * A controller that handles a chunk upload
+ */
+
 class UploadController extends Controller
 {
+    /**
+     * upload function
+     * handles single chunk upload
+     * when the last chunk is uploaded the file is merged on the server from chunks
+     * then the chunks are deleted
+     */
     public function upload(Request $request)
     {
         Log::info($request->all());
@@ -45,19 +55,30 @@ class UploadController extends Controller
         return response()->json(['success' => true]);
     }
 
-    private function combineChunks($filename, $totalChunks)
+    /**
+     * combineChunks combines the chunks after
+     * all of them are uploaded
+     * @param  string  $filename
+     * this is the filename (actually it is a GUID)
+     * @param  int  $totalChunks
+     * number of chunks
+     * @return void
+     */
+    private function combineChunks(string $filename, int $totalChunks)
     {
         $path = storage_path('app/private/chunks/');
         $combinedFilePath = $path . $filename;
 
-        // Ensure the chunks directory exists
+        // chunks directory should exist
+        // if not -- we create it here
         if (!file_exists($path)) {
-            mkdir($path, 0755, true);
+            mkdir($path, 0755, true); // FIXME not the intended way to change file permissions
         }
 
-        // Create the combined file
+        // Create the combined result file
         $combinedFile = fopen($combinedFilePath, 'w');
 
+        // copy each chunk to result combined file
         for ($i = 0; $i < $totalChunks; $i++) {
             $chunkPath = $path . $filename . '.' . $i;
             if (file_exists($chunkPath)) {
