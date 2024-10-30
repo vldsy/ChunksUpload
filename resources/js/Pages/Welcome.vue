@@ -45,7 +45,7 @@ onMounted(() => {
     new Dropzone('#my-dropzone', {
         url: '/upload',
         chunking: true,
-        chunkSize: 10000,
+        chunkSize: 1024*1024*4, // 4MB
         addRemoveLinks: true,
         parallelChunkUploads: false,
         retryChunks: true,
