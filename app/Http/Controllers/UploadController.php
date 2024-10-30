@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Spatie\MediaLibrary\MediaCollections\Exceptions;
+use Spatie\MediaLibrary\Support\File;
 
 class UploadController extends Controller
 {
@@ -26,12 +29,17 @@ class UploadController extends Controller
 
         Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
 
-        // Combine chunks if this is the last one
+        // If this is the last chunk, combine chunks
         if ($chunkIndex == $totalChunks - 1) {
             $this->combineChunks($filename, $totalChunks);
             $post = Post::find(1);
-            $post->addMedia(storage_path('app/private/chunks/' . $filename))
+            try {
+                $post->addMedia(storage_path('app/private/chunks/' . $filename))
                  ->toMediaCollection('my_collection');
+            } catch (Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig $e) {
+                Log::error("Uploaded file is too big.");
+            }
+
         }
 
         return response()->json(['success' => true]);
