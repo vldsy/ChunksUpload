@@ -33,6 +33,7 @@ const onSending = (file, xhr, formData) => {
     console.log(formData);
 
     // formData.append("_token", document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 };
 
 const onSuccess = (file, response) => {
@@ -40,6 +41,8 @@ const onSuccess = (file, response) => {
 };
 
 const headers = ref({});
+
+const csrfToken = ref(null);
 
 onMounted(() => {
     new Dropzone('#my-dropzone', {
@@ -56,12 +59,15 @@ onMounted(() => {
         }
     });
 
+    // this is not used for now
+    // just shows the way to include CSRF token in headers
     document.addEventListener('DOMContentLoaded', () => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            headers.value = {
-                'X-CSRF-TOKEN': csrfToken
-            };
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken.value) {
+            // not used for now
+            // headers.value = {
+            //     'X-CSRF-TOKEN': csrfToken
+            // };
         } else {
             console.error('CSRF token not found');
         }
