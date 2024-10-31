@@ -1,6 +1,53 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
+
+import Dropzone from 'dropzone';
+
+const onSending = (file, xhr, formData) => {
+    console.log(file);
+    console.log(formData);
+
+    
+    let token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    console.log(token);
+
+    // formData.append("_token", document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    xhr.setRequestHeader('X-CSRF-TOKEN', token/*csrfToken*/);
+};
+
+const onSuccess = (file, response) => {
+    console.log('Upload successful:', response);
+};
+
+const csrfToken = ref(null);
+
+onMounted(() => {
+    new Dropzone('#my-dropzone', {
+        url: '/uploadFiles',
+        chunking: true,
+        chunkSize: 1024*1024*4, // 4MB
+        addRemoveLinks: true,
+        parallelChunkUploads: false,
+        retryChunks: true,
+        retryChunksLimit: 3,
+        init: function () {
+            this.on("sending", onSending);
+            this.on("success", onSuccess);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken.value) {
+        } else {
+            console.error('CSRF token not found');
+        }
+    });
+});
+
 </script>
 
 <template>
@@ -26,5 +73,12 @@ import { Head } from '@inertiajs/vue3';
                 </div>
             </div>
         </div>
+        <div class="mx-auto max-w-7xl flex flex-row justify-center items-center">
+            <div id="my-dropzone" class="dropzone"></div>
+        </div>
     </AuthenticatedLayout>
 </template>
+
+<style>
+@import 'dropzone/dist/dropzone.css';
+</style>

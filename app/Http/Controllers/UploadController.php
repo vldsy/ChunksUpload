@@ -95,4 +95,39 @@ class UploadController extends Controller
 
         fclose($combinedFile);
     }
+
+    public function uploadFiles(Request $request)
+    {
+        Log::debug('CSRF Token from request', ['token' => $request->header('X-CSRF-TOKEN')]);
+
+        Log::info($request->all());
+
+        $file = $request->file('file');
+        $chunkIndex = $request->input('dzchunkindex');
+        $totalChunks = $request->input('dztotalchunkcount');
+        $fileExtension = $file->getClientOriginalExtension();
+        $filename = $request->input('dzuuid') . '.' . $fileExtension;
+
+        Log::info('Chunk Index: ' . $chunkIndex);
+        Log::info('Total Chunks: ' . $totalChunks);
+        Log::info('fileExtension: ' . $fileExtension);
+        Log::info('filename: ' . $filename);
+
+        Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
+
+        // If this is the last chunk, combine chunks
+        if ($chunkIndex == $totalChunks - 1) {
+            $this->combineChunks($filename, $totalChunks);
+            $post = Post::find(1);
+            try {
+                $post->addMedia(storage_path('app/private/chunks/' . $filename))
+                 ->toMediaCollection('my_collection');
+            } catch (Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig $e) {
+                Log::error("Uploaded file is too big.");
+            }
+
+        }
+
+        return response()->json(['success' => true]);
+    }
 }
