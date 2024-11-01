@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Middleware\Cors;
+use Illuminate\Support\Facades\Log;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -30,7 +31,5 @@ Route::middleware('auth')->group(function () {
 //Route::group(['middleware' => 'cors'], function () {
 Route::post('/upload', [UploadController::class, 'upload'])->name('upload')->middleware(Cors::class);
 //});
-
-
 
 require __DIR__.'/auth.php';
