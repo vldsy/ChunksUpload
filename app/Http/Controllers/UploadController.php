@@ -25,40 +25,7 @@ class UploadController extends Controller
      */
     public function upload(Request $request)
     {
-        if ($request->hasFile('file')) {
-            Log::info($request->all());
 
-            $file = $request->file('file');
-
-            $fileUuid = $request->input('dzuuid');
-            if (empty($fileUuid)) {
-                // the file size is smaller than chunk size
-                // so we get no chunk data
-                $fileUuid = Str::uuid();
-            }
-            $chunkIndex = $request->input('dzchunkindex', 0);
-            $totalChunks = $request->input('dztotalchunkcount', 1);
-            $fileExtension = $file->getClientOriginalExtension();
-            $filename = $fileUuid . '.' . $fileExtension;
-
-            Log::info('Chunk Index: ' . $chunkIndex);
-            Log::info('Total Chunks: ' . $totalChunks);
-            Log::info('fileExtension: ' . $fileExtension);
-            Log::info('filename: ' . $filename);
-
-            Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
-
-            // If this is the last chunk, combine chunks
-            if ($chunkIndex == $totalChunks - 1) {
-                $this->combineChunks($filename, $totalChunks);
-                $filenameWithFullPath = storage_path('app/private/chunks/' . $filename);
-                $this->attachToModel($filenameWithFullPath);
-            }
-
-            return response()->json(['success' => true]);
-        }
-
-        return response()->json(['success' => false]);
     }
 
     private function uploadChunk()
@@ -125,36 +92,46 @@ class UploadController extends Controller
 
     public function uploadFiles(Request $request)
     {
-        Log::debug('CSRF Token from request', ['token' => $request->header('X-CSRF-TOKEN')]);
+        if ($request->hasFile('file')) {
+            Log::debug('CSRF Token from request', ['token' => $request->header('X-CSRF-TOKEN')]);
 
-        Log::info($request->all());
+            Log::info($request->all());
 
-        $file = $request->file('file');
-        $chunkIndex = $request->input('dzchunkindex');
-        $totalChunks = $request->input('dztotalchunkcount');
-        $fileExtension = $file->getClientOriginalExtension();
-        $filename = $request->input('dzuuid') . '.' . $fileExtension;
+            $file = $request->file('file');
 
-        Log::info('Chunk Index: ' . $chunkIndex);
-        Log::info('Total Chunks: ' . $totalChunks);
-        Log::info('fileExtension: ' . $fileExtension);
-        Log::info('filename: ' . $filename);
-
-        Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
-
-        // If this is the last chunk, combine chunks
-        if ($chunkIndex == $totalChunks - 1) {
-            $this->combineChunks($filename, $totalChunks);
-            $post = Post::find(1);
-            try {
-                $post->addMedia(storage_path('app/private/chunks/' . $filename))
-                 ->toMediaCollection('my_collection');
-            } catch (Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig $e) {
-                Log::error("Uploaded file is too big.");
+            $fileUuid = $request->input('dzuuid');
+            $chunkIndex = 0;
+            $totalChunks = 1;
+            if (empty($fileUuid)) {
+                // the file size is smaller than chunk size
+                // so we get no chunk data
+                $fileUuid = Str::uuid();
+            } else {
+                // a chunk is here
+                $chunkIndex = $request->input('dzchunkindex');
+                $totalChunks = $request->input('dztotalchunkcount');
             }
 
+            $fileExtension = $file->getClientOriginalExtension();
+            $filename = $fileUuid . '.' . $fileExtension;
+
+            Log::info('Chunk Index: ' . $chunkIndex);
+            Log::info('Total Chunks: ' . $totalChunks);
+            Log::info('fileExtension: ' . $fileExtension);
+            Log::info('filename: ' . $filename);
+
+            Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
+
+            // If this is the last chunk, combine chunks
+            if ($chunkIndex == $totalChunks - 1) {
+                $this->combineChunks($filename, $totalChunks);
+                $filenameWithFullPath = storage_path('app/private/chunks/' . $filename);
+                $this->attachToModel($filenameWithFullPath);
+            }
+
+            return response()->json(['success' => true]);
         }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => false]);
     }
 }
