@@ -23,12 +23,13 @@ const onSuccess = (file, response) => {
 };
 
 const csrfToken = ref(null);
+const CHUNK_SIZE = 1024 * 1024 * 4; // 4MB
 
 onMounted(() => {
     new Dropzone('#my-dropzone', {
         url: '/uploadFiles',
         chunking: true,
-        chunkSize: 1024*1024*4, // 4MB
+        chunkSize: CHUNK_SIZE,
         addRemoveLinks: true,
         parallelChunkUploads: false,
         retryChunks: true,
