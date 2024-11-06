@@ -74,12 +74,15 @@ class UploadController extends Controller
 
             // Dispatch the cleanup job in 30 mins if it's the first chunk
             if (count($chunks['receivedChunks']) === 1) {
+                // Actually it's too expensive to use a new job for each file upload
+                // by default jobs are saved in db
+                //  also there's no built in way in Laravel 11 to unschedule a job
                 CleanupUploadedChunksJob::dispatch($filename)->delay(now()->addMinutes(30));
             }
 
-            Log::info('~~~~ Received chunks: ' . json_encode($chunks['receivedChunks']));
+            // Log::info('~~~~ Received chunks: ' . json_encode($chunks['receivedChunks']));
 
-            Log::info('~~~~ Received chunks count: ' . count($chunks['receivedChunks']));
+            // Log::info('~~~~ Received chunks count: ' . count($chunks['receivedChunks']));
 
             // If this is the last chunk, combine chunks
             if (count($chunks['receivedChunks']) === (int)$totalChunks) {

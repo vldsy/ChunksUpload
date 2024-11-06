@@ -39,7 +39,7 @@ class CleanupUploadedChunksJob implements ShouldQueue
     {
         // if there are some leftovers, delete them
         $chunks = Cache::get("upload_{$filename}", [
-            'chunkCount' => 1,
+            'chunkCount' => 0,
             'receivedChunks' => [],
             'startTime' => now()
         ]);
