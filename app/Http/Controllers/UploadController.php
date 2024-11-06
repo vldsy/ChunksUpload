@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CleanupUploadedChunksJob;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
@@ -55,16 +57,40 @@ class UploadController extends Controller
             Log::info('fileExtension: ' . $fileExtension);
             Log::info('filename: ' . $filename);
 
+            // Using cache to store chunks data
+            // Retrieve or init
+            $chunks = Cache::get("upload_{$filename}", [
+                'chunkCount' => $totalChunks,
+                'receivedChunks' => [],
+                'startTime' => now()
+            ]);
+            // add current if not already added
+            if (!in_array($chunkIndex, $chunks['receivedChunks'])) {
+                $chunks['receivedChunks'][] = $chunkIndex;
+            }
+            // store
+            Cache::put("upload_{$filename}", $chunks, now()->addMinutes(30)); // expires in 30 minutes
             Storage::putFileAs('chunks', $file, $filename . '.' . $chunkIndex);
 
+            // Dispatch the cleanup job in 30 mins if it's the first chunk
+            if (count($chunks['receivedChunks']) === 1) {
+                CleanupUploadedChunksJob::dispatch($filename)->delay(now()->addMinutes(30));
+            }
+
+            Log::info('~~~~ Received chunks: ' . json_encode($chunks['receivedChunks']));
+
+            Log::info('~~~~ Received chunks count: ' . count($chunks['receivedChunks']));
+
             // If this is the last chunk, combine chunks
-            if ($chunkIndex == $totalChunks - 1) {
+            if (count($chunks['receivedChunks']) === (int)$totalChunks) {
                 $this->combineChunks($filename, $totalChunks);
                 $filenameWithFullPath = storage_path('app/private/chunks/' . $filename);
                 $this->attachToModel($filenameWithFullPath);
+                Cache::forget("upload_{$filename}");
+                return response()->json(['status' => 'complete']);
             }
 
-            return response()->json(['success' => true]);
+            return response()->json(['status' => 'partial', 'receivedChunks' => $chunks['receivedChunks']]);
         }
 
         return response()->json(['success' => false]);
@@ -79,7 +105,7 @@ class UploadController extends Controller
      * number of chunks
      * @return void
      */
-    private function combineChunks(string $filename, int $totalChunks)
+    private function combineChunks(string $filename, int $totalChunks): void
     {
         $path = storage_path('app/private/chunks/');
         $combinedFilePath = $path . $filename;
@@ -100,15 +126,21 @@ class UploadController extends Controller
                 $chunk = fopen($chunkPath, 'r');
                 stream_copy_to_stream($chunk, $combinedFile);
                 fclose($chunk);
-                if (!Storage::delete("chunks/{$filename}.{$i}")) {
-                    Log::error("Failed to delete chunk: {$chunkPath}");
-                }
+
             } else {
                 Log::error('Chunk file does not exist: ' . $chunkPath);
             }
         }
 
         fclose($combinedFile);
+
+        // delete all chunks, we have already combined file
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $chunkPath = $path . $filename . '.' . $i;
+            if (!Storage::delete("chunks/{$filename}.{$i}")) {
+                Log::error("Failed to delete chunk: {$chunkPath}");
+            }
+        }
     }
 
     private function attachToModel(string $filenameWithFullPath)
