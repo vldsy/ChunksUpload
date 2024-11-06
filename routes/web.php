@@ -32,4 +32,10 @@ Route::middleware('auth')->group(function () {
 Route::post('/upload', [UploadController::class, 'upload'])->name('upload')->middleware(Cors::class);
 //});
 
+// Test
+Route::get('/log-test', function () {
+    Log::info('This is a test log message.');
+    return 'Log message has been written!';
+});
+
 require __DIR__.'/auth.php';
