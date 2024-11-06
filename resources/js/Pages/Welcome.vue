@@ -1,6 +1,5 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
 
 defineProps({
     canLogin: {
@@ -26,59 +25,7 @@ function handleImageError() {
     document.getElementById('background')?.classList.add('!hidden');
 }
 
-import Dropzone from 'dropzone';
-
-const onSending = (file, xhr, formData) => {
-    console.log(file);
-    console.log(formData);
-
-    // formData.append("_token", document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-};
-
-const onSuccess = (file, response) => {
-    console.log('Upload successful:', response);
-};
-
-const headers = ref({});
-
-const csrfToken = ref(null);
-
-onMounted(() => {
-    new Dropzone('#my-dropzone', {
-        url: '/upload',
-        chunking: true,
-        chunkSize: 1024*1024*4, // 4MB
-        addRemoveLinks: true,
-        parallelChunkUploads: false,
-        retryChunks: true,
-        retryChunksLimit: 3,
-        init: function () {
-            this.on("sending", onSending);
-            this.on("success", onSuccess);
-        }
-    });
-
-    // this is not used for now
-    // just shows the way to include CSRF token in headers
-    document.addEventListener('DOMContentLoaded', () => {
-        csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken.value) {
-            // not used for now
-            // headers.value = {
-            //     'X-CSRF-TOKEN': csrfToken
-            // };
-        } else {
-            console.error('CSRF token not found');
-        }
-    });
-});
-
 </script>
-
-<style>
-@import 'dropzone/dist/dropzone.css';
-</style>
 
 <template>
 
@@ -92,19 +39,7 @@ onMounted(() => {
                 <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
                     <div class="flex lg:col-start-2 lg:justify-center">
                         <div style="height: 500px; width: 500px; border: 1px solid red; position: relative;">
-                            <div id="my-dropzone" class="dropzone"></div>
-
-                            <!-- <DropZone 
-                                :maxFiles="Number(10000000000)"
-                                url="http://localhost:8000/upload"
-                                :uploadOnDrop="true"
-                                :multipleUpload="false"
-                                :headers="headers"
-                                :chunking="true"
-                                :chunkSize="2000000"
-                                :retryChunks="true"
-                                :retryChunksLimit="3"
-                                :parallelUpload="3"/> -->
+                            Welcome!
                         </div>
                     </div>
                     <nav v-if="canLogin" class="-mx-3 flex flex-1 justify-end">

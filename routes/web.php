@@ -5,7 +5,6 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Middleware\Cors;
 use Illuminate\Support\Facades\Log;
 
 Route::get('/', function () {
@@ -28,9 +27,6 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/uploadFiles', [UploadController::class, 'uploadFiles'])->name('uploadFiles');
 });
-//Route::group(['middleware' => 'cors'], function () {
-Route::post('/upload', [UploadController::class, 'upload'])->name('upload')->middleware(Cors::class);
-//});
 
 // Test
 Route::get('/log-test', function () {
