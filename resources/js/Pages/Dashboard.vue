@@ -31,7 +31,13 @@ onMounted(() => {
         chunking: true,
         chunkSize: CHUNK_SIZE,
         addRemoveLinks: true,
-        parallelChunkUploads: false,
+        //
+        // changed from parallelChunkUploads: false
+        parallelChunkUploads: true,
+        // added
+        parallelUploads: 10,
+        autoProcessQueue: true,
+        //
         retryChunks: true,
         retryChunksLimit: 3,
         init: function () {
